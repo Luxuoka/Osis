@@ -6,15 +6,43 @@ import Image from "next/image";
 import { SITE_IDENTITY } from "@/lib/constants";
 
 export function LoadingScreen() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Sembunyikan loading screen setelah 1.2 detik atau saat dokumen selesai dimuat
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1200);
+    try {
+      // Cek apakah sudah pernah dimuat pada sesi browser saat ini
+      const alreadyLoaded = sessionStorage.getItem("osis_session_loaded");
+      if (alreadyLoaded) {
+        return;
+      }
 
-    return () => clearTimeout(timer);
+      setIsLoading(true);
+
+      const dismiss = () => {
+        setIsLoading(false);
+        try {
+          sessionStorage.setItem("osis_session_loaded", "true");
+        } catch {
+          // Ignore private browsing storage restrictions
+        }
+      };
+
+      // Segera hilangkan saat halaman siap (maksimal 350ms agar tidak memblokir user)
+      if (document.readyState === "complete") {
+        const timer = setTimeout(dismiss, 350);
+        return () => clearTimeout(timer);
+      } else {
+        const handleLoad = () => setTimeout(dismiss, 150);
+        window.addEventListener("load", handleLoad);
+        const fallbackTimer = setTimeout(dismiss, 700);
+        return () => {
+          window.removeEventListener("load", handleLoad);
+          clearTimeout(fallbackTimer);
+        };
+      }
+    } catch {
+      setIsLoading(false);
+    }
   }, []);
 
   return (
@@ -24,8 +52,8 @@ export function LoadingScreen() {
           key="loader"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white"
+          transition={{ duration: 0.25, ease: "easeInOut" }}
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white pointer-events-none"
         >
           {/* Subtle Ambient Glow */}
           <div className="absolute w-72 h-72 rounded-full bg-blue-100/50 blur-3xl pointer-events-none" />
@@ -33,20 +61,20 @@ export function LoadingScreen() {
 
           {/* Logo Animation */}
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: [0.8, 1.05, 1], opacity: 1 }}
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             transition={{
-              duration: 0.8,
+              duration: 0.35,
               ease: "easeOut",
             }}
-            className="relative w-28 h-28 md:w-32 md:h-32 mb-6"
+            className="relative w-24 h-24 md:w-28 md:h-28 mb-5"
           >
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
+              transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
               className="absolute -inset-2 rounded-full border-2 border-dashed border-[#1A56DB]/30"
             />
-            <div className="relative w-full h-full rounded-2xl bg-white p-3 shadow-xl border border-slate-200 flex items-center justify-center">
+            <div className="relative w-full h-full rounded-2xl bg-white p-2.5 shadow-xl border border-slate-200 flex items-center justify-center">
               <Image
                 src="/osis-logo.jpeg"
                 alt={SITE_IDENTITY.NAMA_ORGANISASI}
@@ -60,25 +88,25 @@ export function LoadingScreen() {
 
           {/* Identity & Status */}
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
             className="text-center"
           >
-            <h1 className="text-lg md:text-xl font-bold tracking-wider text-slate-900">
+            <h1 className="text-base md:text-lg font-bold tracking-wider text-slate-900">
               {SITE_IDENTITY.NAMA_ORGANISASI}
             </h1>
-            <p className="text-xs tracking-widest text-[#1A56DB] font-semibold mt-1 uppercase">
+            <p className="text-[11px] tracking-widest text-[#1A56DB] font-semibold mt-0.5 uppercase">
               {SITE_IDENTITY.NAMA_JULUKAN_SEKOLAH}
             </p>
           </motion.div>
 
           {/* Progress bar loader */}
-          <div className="w-36 h-1.5 bg-slate-100 rounded-full mt-6 overflow-hidden">
+          <div className="w-32 h-1 bg-slate-100 rounded-full mt-5 overflow-hidden">
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: "100%" }}
-              transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+              transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
               className="w-full h-full bg-gradient-to-r from-[#1A56DB] via-[#FDB813] to-[#EE2D38]"
             />
           </div>

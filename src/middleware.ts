@@ -8,12 +8,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (images, videos, etc.)
+     * Hanya jalankan middleware autentikasi pada rute admin.
+     * Rute publik (/ dsb) tidak memerlukan session guard sehingga
+     * tidak terkena penalti network roundtrip ke Supabase Auth.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4)$).*)",
+    "/admin/:path*",
   ],
 };

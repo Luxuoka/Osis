@@ -61,24 +61,31 @@ export default function DaftarOsisPage() {
       try {
         const supabase = createClient();
 
-        // 1. Cek status buka/tutup pendaftaran di DB
-        const { data: pengaturan } = await supabase
-          .from("pengaturan")
-          .select("pendaftaran_buka")
-          .limit(1)
-          .maybeSingle();
+        // Ambil status buka/tutup & daftar departemen secara paralel
+        const [pengaturanRes, deptsRes] = await Promise.allSettled([
+          supabase
+            .from("pengaturan")
+            .select("pendaftaran_buka")
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from("departemen")
+            .select("id, nama")
+            .order("urutan", { ascending: true }),
+        ]);
 
-        if (pengaturan && typeof pengaturan.pendaftaran_buka === "boolean") {
-          setIsOpen(pengaturan.pendaftaran_buka);
+        if (pengaturanRes.status === "fulfilled" && pengaturanRes.value.data) {
+          const pengaturan = pengaturanRes.value.data;
+          if (typeof pengaturan.pendaftaran_buka === "boolean") {
+            setIsOpen(pengaturan.pendaftaran_buka);
+          } else {
+            setIsOpen(true);
+          }
         } else {
           setIsOpen(true);
         }
 
-        // 2. Ambil daftar departemen untuk pilihan form
-        const { data: depts } = await supabase
-          .from("departemen")
-          .select("id, nama")
-          .order("urutan", { ascending: true });
+        const depts = deptsRes.status === "fulfilled" ? deptsRes.value.data : null;
 
         if (depts && depts.length > 0) {
           setDepartemenList(depts);

@@ -12,7 +12,7 @@ import {
   Eye,
   Sparkles,
 } from "lucide-react";
-import { createClientServer } from "@/lib/supabase/server";
+import { createClientPublic } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import { SITE_IDENTITY } from "@/lib/constants";
 
@@ -25,7 +25,7 @@ interface NewsDetailPageProps {
 }
 
 export async function generateMetadata({ params }: NewsDetailPageProps): Promise<Metadata> {
-  const supabase = await createClientServer();
+  const supabase = createClientPublic();
   const { data: article } = await supabase
     .from("berita")
     .select("judul, cuplikan, thumbnail_url")
@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: NewsDetailPageProps): Promise
 }
 
 export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
-  const supabase = await createClientServer();
+  const supabase = createClientPublic();
 
   // Ambil artikel
   const { data: article } = await supabase

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Newspaper, Calendar, User, Search, ArrowRight, FolderOpen } from "lucide-react";
-import { createClientServer } from "@/lib/supabase/server";
+import { createClientPublic } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import { SITE_IDENTITY } from "@/lib/constants";
 
@@ -16,7 +16,7 @@ interface NewsPageProps {
 }
 
 export default async function NewsArchivePage({ searchParams }: NewsPageProps) {
-  const supabase = await createClientServer();
+  const supabase = createClientPublic();
   const q = searchParams.q || "";
   const kategori = searchParams.kategori || "Semua";
   const currentPage = parseInt(searchParams.page || "1", 10) || 1;

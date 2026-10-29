@@ -8,7 +8,7 @@ import {
   Sparkles,
   Link2,
 } from "lucide-react";
-import { createClientServer } from "@/lib/supabase/server";
+import { createClientPublic } from "@/lib/supabase/server";
 import { SITE_IDENTITY } from "@/lib/constants";
 
 export const revalidate = 120; // ISR
@@ -22,7 +22,7 @@ const IconMap: { [key: string]: any } = {
 };
 
 export default async function ImportantLinksPage() {
-  const supabase = await createClientServer();
+  const supabase = createClientPublic();
 
   const { data: dbLinks } = await supabase
     .from("tautan")

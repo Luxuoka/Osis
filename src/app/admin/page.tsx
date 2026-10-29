@@ -30,40 +30,29 @@ export default async function AdminDashboardPage() {
   let recentFeedback: any[] = [];
 
   try {
-    const { count: pCount } = await supabase
-      .from("pendaftar")
-      .select("*", { count: "exact", head: true });
-    totalPendaftar = pCount || 0;
+    const [pRes, mRes, bRes, pgRes, appRes, fbRes] = await Promise.allSettled([
+      supabase.from("pendaftar").select("*", { count: "exact", head: true }),
+      supabase.from("masukan").select("*", { count: "exact", head: true }).eq("is_dibaca", false),
+      supabase.from("berita").select("*", { count: "exact", head: true }),
+      supabase.from("pengurus").select("*", { count: "exact", head: true }),
+      supabase
+        .from("pendaftar")
+        .select("id, no_pendaftaran, nama_lengkap, kelas, jurusan, status_seleksi, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("masukan")
+        .select("id, nama, kategori, judul, is_anonim, created_at")
+        .order("created_at", { ascending: false })
+        .limit(4),
+    ]);
 
-    const { count: mCount } = await supabase
-      .from("masukan")
-      .select("*", { count: "exact", head: true })
-      .eq("is_dibaca", false);
-    masukanBelumDibaca = mCount || 0;
-
-    const { count: bCount } = await supabase
-      .from("berita")
-      .select("*", { count: "exact", head: true });
-    totalBerita = bCount || 0;
-
-    const { count: pgCount } = await supabase
-      .from("pengurus")
-      .select("*", { count: "exact", head: true });
-    totalPengurus = pgCount || 0;
-
-    const { data: applicants } = await supabase
-      .from("pendaftar")
-      .select("id, no_pendaftaran, nama_lengkap, kelas, jurusan, status_seleksi, created_at")
-      .order("created_at", { ascending: false })
-      .limit(5);
-    recentApplicants = applicants || [];
-
-    const { data: feedback } = await supabase
-      .from("masukan")
-      .select("id, nama, kategori, judul, is_anonim, created_at")
-      .order("created_at", { ascending: false })
-      .limit(4);
-    recentFeedback = feedback || [];
+    if (pRes.status === "fulfilled") totalPendaftar = pRes.value.count || 0;
+    if (mRes.status === "fulfilled") masukanBelumDibaca = mRes.value.count || 0;
+    if (bRes.status === "fulfilled") totalBerita = bRes.value.count || 0;
+    if (pgRes.status === "fulfilled") totalPengurus = pgRes.value.count || 0;
+    if (appRes.status === "fulfilled") recentApplicants = appRes.value.data || [];
+    if (fbRes.status === "fulfilled") recentFeedback = fbRes.value.data || [];
   } catch (err) {
     console.error("Dashboard metrics error:", err);
   }
