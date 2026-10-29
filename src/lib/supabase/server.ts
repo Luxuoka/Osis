@@ -14,10 +14,10 @@ export async function createClientServer() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+      setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
         try {
-          cookiesToSet.forEach(({ name, value, options }: { name: string; value: string }) =>
-            cookieStore.set(name, value, options as any)
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
           );
         } catch {
           // Can happen in Server Components
